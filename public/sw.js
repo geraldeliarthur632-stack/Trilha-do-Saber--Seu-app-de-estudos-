@@ -1,13 +1,17 @@
 // Trilha do Saber Service Worker - Offline Caching, Background Sync & Local Push Notifications for 'Dica de Estudo do Dia'
-const CACHE_NAME = 'trilha-do-saber-cache-v7';
+const CACHE_NAME = 'trilha-do-saber-cache-v8';
+
+// Compute scope base URL dynamically to ensure compatibility with subfolders like GitHub Pages
+const SCOPE_URL = self.registration ? self.registration.scope : self.location.origin + '/';
+const getAssetUrl = (relativeOrAbsolute) => new URL(relativeOrAbsolute, SCOPE_URL).href;
 
 // Core shell assets to precache for offline functionality
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/favicon.ico',
+  getAssetUrl('./'),
+  getAssetUrl('./index.html'),
+  getAssetUrl('./manifest.json'),
+  getAssetUrl('./icon.svg'),
+  getAssetUrl('./app-logo.png'),
 ];
 
 // High-impact pedagogical study tips available completely offline inside the Service Worker
@@ -96,7 +100,7 @@ self.addEventListener('fetch', (event) => {
   // Skip non-HTTP / chrome extension schemes
   if (!url.protocol.startsWith('http')) return;
 
-  // Handle SPA navigation requests: network first -> fallback to cached /index.html
+  // Handle SPA navigation requests: network first -> fallback to cached index.html
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -108,8 +112,8 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          return caches.match('/index.html').then((cached) => {
-            return cached || caches.match('/');
+          return caches.match(getAssetUrl('./index.html')).then((cached) => {
+            return cached || caches.match(getAssetUrl('./'));
           });
         })
     );
@@ -143,7 +147,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // Graceful fallback for images / icons
           if (request.destination === 'image') {
-            return caches.match('/icon.svg');
+            return caches.match(getAssetUrl('./icon.svg'));
           }
           return new Response('Offline', { status: 503, statusText: 'Offline' });
         });
@@ -270,22 +274,22 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
-  let urlToOpen = (notification.data && notification.data.url) || '/';
+  let urlToOpen = (notification.data && notification.data.url) ? getAssetUrl(notification.data.url) : SCOPE_URL;
   if (action === 'open_exam') {
-    urlToOpen = '/?modal=calendar';
+    urlToOpen = getAssetUrl('./?modal=calendar');
   } else if (action === 'listen_tip') {
-    urlToOpen = '/?action=speak_tip';
+    urlToOpen = getAssetUrl('./?action=speak_tip');
   } else if (action === 'study_now') {
-    urlToOpen = '/?mode=simulado';
+    urlToOpen = getAssetUrl('./?mode=simulado');
   } else if (action === 'open_tip') {
-    urlToOpen = '/?tab=study_tips';
+    urlToOpen = getAssetUrl('./?tab=study_tips');
   }
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if ('focus' in client) {
-          if ('navigate' in client && urlToOpen !== '/') {
+          if ('navigate' in client && urlToOpen !== SCOPE_URL) {
             client.navigate(urlToOpen);
           }
           return client.focus();

@@ -50,8 +50,9 @@ class PWAService {
     // Register Service Worker for offline capability & local push notifications
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const registerSW = () => {
+        const swUrl = new URL('sw.js', window.location.href).href;
         navigator.serviceWorker
-          .register('/sw.js')
+          .register(swUrl)
           .then((registration) => {
             console.log('[PWA] Service Worker registrado com sucesso:', registration.scope);
 

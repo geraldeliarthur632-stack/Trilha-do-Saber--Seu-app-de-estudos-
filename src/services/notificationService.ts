@@ -210,7 +210,8 @@ class NotificationService {
   private async initServiceWorker() {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       try {
-        const reg = await navigator.serviceWorker.register('/sw.js');
+        const swUrl = new URL('sw.js', window.location.href).href;
+        const reg = await navigator.serviceWorker.register(swUrl);
         console.log('[Push Notification] Service Worker registrado com sucesso:', reg.scope);
       } catch (err) {
         console.warn('[Push Notification] Falha ao registrar Service Worker:', err);

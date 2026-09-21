@@ -14,6 +14,9 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+const SCOPE_URL = self.registration ? self.registration.scope : self.location.origin + '/';
+const getAssetUrl = (relativeOrAbsolute) => new URL(relativeOrAbsolute, SCOPE_URL).href;
+
 // Background message handler from Firebase Cloud Messaging
 messaging.onBackgroundMessage((payload) => {
   console.log('[FCM-SW] Mensagem recebida em segundo plano:', payload);
@@ -21,12 +24,12 @@ messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || payload.data?.title || '🎒 Trilha do Saber: Hora de Estudar!';
   const body = payload.notification?.body || payload.data?.body || 'Seu horário de estudos no cronograma está próximo. Prepare seu material!';
   const subjectId = payload.data?.subjectId || 'matematica';
-  const url = payload.data?.url || `/?mode=journey&subject=${subjectId}`;
+  const url = payload.data?.url || getAssetUrl(`./?mode=journey&subject=${subjectId}`);
 
   const notificationOptions = {
     body,
-    icon: '/icon.svg',
-    badge: '/icon.svg',
+    icon: getAssetUrl('./icon.svg'),
+    badge: getAssetUrl('./icon.svg'),
     vibrate: [250, 100, 250, 100, 250],
     requireInteraction: true,
     tag: payload.data?.tag || `fcm_reminder_${Date.now()}`,
@@ -48,14 +51,14 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const action = event.action;
-  const targetUrl = event.notification.data?.url || '/';
+  const targetUrl = event.notification.data?.url ? getAssetUrl(event.notification.data.url) : SCOPE_URL;
 
   if (action === 'snooze_15') {
     setTimeout(() => {
       self.registration.showNotification('🎒 Trilha do Saber: Lembrete de Estudo', {
         body: 'Sua pausa de 15 minutos terminou! Vamos começar a sessão no cronograma?',
-        icon: '/icon.svg',
-        badge: '/icon.svg',
+        icon: getAssetUrl('./icon.svg'),
+        badge: getAssetUrl('./icon.svg'),
         vibrate: [250, 100, 250],
         data: { url: targetUrl },
         actions: [
@@ -70,7 +73,7 @@ self.addEventListener('notificationclick', (event) => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
       for (const client of windowClients) {
         if ('focus' in client) {
-          if ('navigate' in client && targetUrl !== '/') {
+          if ('navigate' in client && targetUrl !== SCOPE_URL) {
             client.navigate(targetUrl);
           }
           return client.focus();

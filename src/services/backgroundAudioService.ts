@@ -72,15 +72,16 @@ class BackgroundAudioService {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
 
     try {
+      const defaultIcon = typeof window !== 'undefined' ? new URL('icon.svg', window.location.href).href : './icon.svg';
       navigator.mediaSession.metadata = new MediaMetadata({
         title: info.lessonBadge ? `[${info.lessonBadge}] ${info.title}` : info.title,
         artist: info.artist || "Trilha do Saber - Educação e Xadrez",
         album: info.album || 'Curso de Xadrez & Videoaulas',
         artwork: [
-          { src: info.artworkUrl || '/icon.svg', sizes: '96x96', type: 'image/svg+xml' },
-          { src: info.artworkUrl || '/icon.svg', sizes: '128x128', type: 'image/svg+xml' },
-          { src: info.artworkUrl || '/icon.svg', sizes: '256x256', type: 'image/svg+xml' },
-          { src: info.artworkUrl || '/icon.svg', sizes: '512x512', type: 'image/svg+xml' },
+          { src: info.artworkUrl || defaultIcon, sizes: '96x96', type: 'image/svg+xml' },
+          { src: info.artworkUrl || defaultIcon, sizes: '128x128', type: 'image/svg+xml' },
+          { src: info.artworkUrl || defaultIcon, sizes: '256x256', type: 'image/svg+xml' },
+          { src: info.artworkUrl || defaultIcon, sizes: '512x512', type: 'image/svg+xml' },
         ],
       });
 

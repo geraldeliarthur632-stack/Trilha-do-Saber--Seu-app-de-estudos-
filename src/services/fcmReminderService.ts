@@ -118,9 +118,8 @@ class FCMReminderService {
       let swRegistration: ServiceWorkerRegistration | undefined;
       if ('serviceWorker' in navigator) {
         try {
-          swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
-            scope: '/',
-          });
+          const fcmSwUrl = new URL('firebase-messaging-sw.js', window.location.href).href;
+          swRegistration = await navigator.serviceWorker.register(fcmSwUrl);
           await navigator.serviceWorker.ready;
         } catch {
           // Fallback to standard sw.js

@@ -77,7 +77,7 @@ export const ChessVideoPlayer: React.FC<ChessVideoPlayerProps> = ({
         title: selectedVideo.title,
         artist: selectedVideo.channel || 'Curso de Xadrez',
         album: 'Aprenda Xadrez do Zero',
-        artworkUrl: selectedVideo.thumbnailUrl || '/icon.svg',
+        artworkUrl: selectedVideo.thumbnailUrl || './icon.svg',
         lessonBadge: selectedVideo.lessonBadge,
       });
 
